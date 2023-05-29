@@ -24,6 +24,43 @@ func FindUserByFilters(filters map[string]string) ([]models.UserDTo, error) {
 	return users, nil
 }
 
+func CreateUser(user models.User) (any, string) {
+	rePassword := regexp2.MustCompile(`^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[$*&@#])[0-9a-zA-Z$*&@#]{8,}$`, 0)
+	matchPass, _ := rePassword.MatchString(user.Password)
+	if matchPass == false {
+		return "", "password strength is not enough"
+	}
+	userDB, _ := findByEmail(user.Email)
+	if userDB.ID != 0 {
+		return "", "there is already a user with this email"
+	}
+	user.Password, _ = utils.HashPassword(user.Password)
+	ctxDB := database.DB.Save(&user)
+	if ctxDB.Error != nil {
+		return "", ctxDB.Error.Error()
+	}
+	return user, ""
+}
+
+func EditUserDTO(user models.UserUpdateDTO, id string) (string, string) {
+	return editUser(user, id)
+}
+
+func EditUserWithRoleDTO(user models.UserUpdateRoleDTO, id string) (string, string) {
+	return editUser(user, id)
+}
+
+func DeleteUser(id string) (any, string) {
+	user, err := findUserById(id)
+	if err != nil {
+		return nil, err.Error()
+	}
+	if ctxDB := database.DB.Model(&user).Delete(user); ctxDB.Error != nil {
+		return nil, ctxDB.Error.Error()
+	}
+	return "User deleted successfully", ""
+}
+
 func findUserById(id string) (models.User, error) {
 	var user models.User
 	if ctxDB := database.DB.Model(&models.User{}).First(&user, id); ctxDB != nil {
@@ -38,25 +75,6 @@ func findByEmail(email string) (models.User, error) {
 		return u, err.Error
 	}
 	return u, nil
-}
-
-func CreateUser(user models.User) (any, string) {
-	rePassword := regexp2.MustCompile(`^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[$*&@#])[0-9a-zA-Z$*&@#]{8,}$`, 0)
-	matchPass, _ := rePassword.MatchString(user.Password)
-	if matchPass == false {
-		return "", "password strength is not enough"
-	}
-
-	userDB, _ := findByEmail(user.Email)
-	if userDB.ID != 0 {
-		return "", "there is already a user with this email"
-	}
-	user.Password, _ = utils.HashPassword(user.Password)
-	ctxDB := database.DB.Save(&user)
-	if ctxDB.Error != nil {
-		return "", ctxDB.Error.Error()
-	}
-	return user, ""
 }
 
 func editUser(user interface{}, id string) (string, string) {
@@ -78,23 +96,4 @@ func editUser(user interface{}, id string) (string, string) {
 		return "", ctxDB.Error.Error()
 	}
 	return "User updated successfully", ""
-}
-
-func EditUserDTO(user models.UserUpdateDTO, id string) (string, string) {
-	return editUser(user, id)
-}
-
-func EditUserWithRoleDTO(user models.UserUpdateRoleDTO, id string) (string, string) {
-	return editUser(user, id)
-}
-
-func DeleteUser(id string) (any, string) {
-	user, err := findUserById(id)
-	if err != nil {
-		return nil, err.Error()
-	}
-	if ctxDB := database.DB.Model(&user).Delete(user); ctxDB.Error != nil {
-		return nil, ctxDB.Error.Error()
-	}
-	return "User deleted successfully", ""
 }

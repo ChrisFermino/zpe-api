@@ -1,0 +1,12 @@
+version: '3'
+services:
+  ZpeDatabase:
+    image: postgres
+    container_name: ZpeDatabase
+    environment:
+      - POSTGRES_DB=zpeApi
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=123456789
+    ports:
+      - "5432:5432"
+    restart: unless-stopped

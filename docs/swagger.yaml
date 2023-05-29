@@ -1,0 +1,279 @@
+definitions:
+  models.Login:
+    properties:
+      email:
+        type: string
+      password:
+        type: string
+    type: object
+  models.User:
+    properties:
+      email:
+        type: string
+      id:
+        type: integer
+      name:
+        type: string
+      password:
+        type: string
+      role:
+        type: string
+    required:
+    - email
+    - name
+    - password
+    - role
+    type: object
+  models.UserUpdateDTO:
+    properties:
+      email:
+        type: string
+      id:
+        type: integer
+      name:
+        type: string
+      password:
+        type: string
+    type: object
+  models.UserUpdateRoleDTO:
+    properties:
+      email:
+        type: string
+      id:
+        type: integer
+      name:
+        type: string
+      password:
+        type: string
+      role:
+        type: string
+    type: object
+  request_handler.Error:
+    properties:
+      error:
+        type: string
+      message:
+        type: string
+      status:
+        type: integer
+    required:
+    - error
+    - message
+    - status
+    type: object
+  request_handler.RequestError:
+    properties:
+      data: {}
+      error:
+        $ref: '#/definitions/request_handler.Error'
+    type: object
+  request_handler.RequestSuccess:
+    properties:
+      data: {}
+    type: object
+info:
+  contact: {}
+  description: ZPE User CRUD API
+  title: ZPE Crud API
+  version: "1.0"
+paths:
+  /login:
+    post:
+      consumes:
+      - application/json
+      description: Logs in a user and returns an access token
+      parameters:
+      - description: Login credentials
+        in: body
+        name: login
+        required: true
+        schema:
+          $ref: '#/definitions/models.Login'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Successfully logged in
+          schema:
+            $ref: '#/definitions/request_handler.RequestSuccess'
+        "400":
+          description: invalid credentials
+          schema:
+            $ref: '#/definitions/request_handler.Error'
+      summary: Login to the application
+      tags:
+      - Authentication
+  /user:
+    delete:
+      consumes:
+      - application/json
+      description: Delete a user from the database
+      parameters:
+      - description: user Id
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/request_handler.RequestSuccess'
+        "400":
+          description: Bad RequestError
+          schema:
+            $ref: '#/definitions/request_handler.RequestError'
+        "401":
+          description: Unauthorized
+      security:
+      - ApiKeyAuth: []
+      summary: Delete user
+      tags:
+      - User
+    get:
+      consumes:
+      - application/json
+      description: Find users based on query parameters
+      parameters:
+      - description: User ID
+        in: query
+        name: id
+        type: string
+      - description: name
+        in: query
+        name: name
+        type: string
+      - description: User Email
+        in: query
+        name: email
+        type: string
+      - description: User Role
+        in: query
+        name: role
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/request_handler.RequestSuccess'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/request_handler.RequestError'
+        "401":
+          description: Unauthorized
+      security:
+      - ApiKeyAuth: []
+      summary: Find users by filters
+      tags:
+      - User
+    patch:
+      consumes:
+      - application/json
+      description: With this endpoint it is possible to change the user in the database
+        but without changing its "Role"
+      parameters:
+      - description: user Id
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: User model
+        in: body
+        name: User
+        required: true
+        schema:
+          $ref: '#/definitions/models.UserUpdateDTO'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/request_handler.RequestSuccess'
+        "400":
+          description: Bad RequestError
+          schema:
+            $ref: '#/definitions/request_handler.RequestError'
+        "401":
+          description: Unauthorized
+      security:
+      - ApiKeyAuth: []
+      summary: Edit user without Role
+      tags:
+      - User
+    post:
+      consumes:
+      - application/json
+      description: save a user to the database
+      parameters:
+      - description: User model
+        in: body
+        name: User
+        required: true
+        schema:
+          $ref: '#/definitions/models.User'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/request_handler.RequestSuccess'
+        "400":
+          description: Bad RequestError
+          schema:
+            $ref: '#/definitions/request_handler.RequestError'
+        "401":
+          description: Unauthorized
+      security:
+      - ApiKeyAuth: []
+      summary: Save user
+      tags:
+      - User
+  /user/editRole:
+    patch:
+      consumes:
+      - application/json
+      description: With this endpoint it is possible to change the user's "Role" in
+        the database
+      parameters:
+      - description: user Id
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: User model
+        in: body
+        name: User
+        required: true
+        schema:
+          $ref: '#/definitions/models.UserUpdateRoleDTO'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/request_handler.RequestSuccess'
+        "400":
+          description: Bad RequestError
+          schema:
+            $ref: '#/definitions/request_handler.RequestError'
+        "401":
+          description: Unauthorized
+      security:
+      - ApiKeyAuth: []
+      summary: Edit user with Role
+      tags:
+      - User
+securityDefinitions:
+  ApiKeyAuth:
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"

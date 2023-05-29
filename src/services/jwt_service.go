@@ -54,5 +54,8 @@ func (s *JwtService) ValidateToken(token string) (*Claim, bool) {
 		}
 		return []byte(s.secretKey), nil
 	})
+	if err != nil {
+		return nil, false
+	}
 	return ParseToken.Claims.(*Claim), err == nil
 }
